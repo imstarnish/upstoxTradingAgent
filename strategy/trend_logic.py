@@ -8,6 +8,10 @@ class TrendLogic:
     based on EMA, VWAP, Supertrend, and ADX. Also provides dynamic position sizing.
     """
 
+    def __init__(self, account_size: float = 100000.0, risk_percentage: float = 0.01):
+        self.account_size = account_size
+        self.risk_percentage = risk_percentage
+
     def generate_signal(self, df_15m: pd.DataFrame) -> str:
         """
         Generates a signal based on the following logic:
@@ -25,7 +29,6 @@ class TrendLogic:
         df = df_15m.copy()
 
         # Resample to daily to calculate the 200-day EMA
-        # We need sufficient data for 200-day EMA, if not available, return HOLD
         daily_df = df.resample('D').agg({
             'open': 'first',
             'high': 'max',
@@ -45,14 +48,9 @@ class TrendLogic:
         df['EMA_200'] = df['EMA_200'].ffill()
 
         # Calculate daily VWAP
-        # Resample high, low, close, volume for each day to calculate daily VWAP
-        # Or better yet, we can calculate anchored VWAP per day directly on 15m data
-        # Let's calculate session VWAP (daily anchored VWAP) using pandas-ta
-        # vwap in pandas_ta has an anchor parameter which defaults to "D" (Daily)
         df['VWAP'] = ta.vwap(high=df['high'], low=df['low'], close=df['close'], volume=df['volume'], anchor="D")
 
         # Calculate Supertrend on 15m timeframe
-        # pandas_ta supertrend returns a DataFrame, we extract the direction column
         st = ta.supertrend(high=df['high'], low=df['low'], close=df['close'], length=10, multiplier=3.0)
         st_dir_col = [col for col in st.columns if 'SUPERTd' in col][0]
         df['Supertrend_Dir'] = st[st_dir_col]
@@ -79,7 +77,6 @@ class TrendLogic:
         cond_vwap = current_price > current_row['VWAP']
 
         # 3. The 15-minute Supertrend indicator must flip to bullish
-        # "flip to bullish" implies previous direction was <= 0 and current is > 0 (1 = bullish, -1 = bearish)
         cond_supertrend_flip = (current_row['Supertrend_Dir'] > 0) and (prev_row['Supertrend_Dir'] <= 0)
 
         # 4. The ADX must be greater than 25
@@ -93,10 +90,10 @@ class TrendLogic:
 
         return 'HOLD'
 
-    def calculate_position_size(self, df: pd.DataFrame, account_size: float = 100000.0, risk_percentage: float = 0.01) -> float:
+    def calculate_position_size(self, df: pd.DataFrame) -> float:
         """
         Calculates dynamic position sizing based on a 14-period ATR.
-        Ensures risk does not exceed 1% of the account size (default 100,000 INR).
+        Ensures risk does not exceed the initialized percentage of the account size.
         """
         if df is None or df.empty or len(df) < 14:
             return 0.0
@@ -112,7 +109,7 @@ class TrendLogic:
         if pd.isna(latest_atr) or latest_atr <= 0:
             return 0.0
 
-        risk_amount = account_size * risk_percentage
+        risk_amount = self.account_size * self.risk_percentage
 
         position_size = risk_amount / latest_atr
 
