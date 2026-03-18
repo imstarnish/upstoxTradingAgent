@@ -1,0 +1,5 @@
+pandas
+pandas-ta
+schedule
+pyotp
+upstox-python-sdk
