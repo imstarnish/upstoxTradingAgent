@@ -16,7 +16,19 @@ logging.basicConfig(
 )
 
 # Constants
-TICKERS = ["NSE_EQ|INE171A01029", "NSE_EQ|INE040A01034"]
+TICKERS = [
+    "NSE_EQ|INE171A01029",
+    "NSE_EQ|INE040A01034",  # 1. HDFC Bank
+    "NSE_EQ|INE002A01018",  # 2. Reliance Industries
+    "NSE_EQ|INE090A01021",  # 3. ICICI Bank
+    "NSE_EQ|INE009A01021",  # 4. Infosys
+    "NSE_EQ|INE018A01030",  # 5. Larsen & Toubro (L&T)
+    "NSE_EQ|INE154A01025",  # 6. ITC
+    "NSE_EQ|INE467B01029",  # 7. Tata Consultancy Services (TCS)
+    "NSE_EQ|INE397D01024",  # 8. Bharti Airtel
+    "NSE_EQ|INE238A01034",  # 9. Axis Bank
+    "NSE_EQ|INE062A01020"   # 10. State Bank of India (SBI)
+]
 POLL_INTERVAL = 15 * 60  # 15 minutes in seconds
 
 async def fetch_historical_data(api_client: upstox_client.ApiClient, instrument_key: str) -> pd.DataFrame:
