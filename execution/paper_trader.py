@@ -7,7 +7,10 @@ class PaperTrader:
         self.current_capital = starting_capital
         self.active_positions = {}
         self.trade_history = []
-        self.log_file = 'paper_trade_log.csv'
+
+        # Ensure public_logs directory exists
+        os.makedirs('public_logs', exist_ok=True)
+        self.log_file = 'public_logs/paper_trade_log.csv'
 
         # Initialize CSV if it doesn't exist
         if not os.path.exists(self.log_file):
